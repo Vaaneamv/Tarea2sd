@@ -2,7 +2,7 @@
 
 
 Para levantar las instancias dentro de la topología
-    docker-compose up --build
+   ´´´docker-compose up --build´´´
 
 Para bajar las instancias del compose
    docker-compose down
