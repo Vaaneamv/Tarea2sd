@@ -5,11 +5,10 @@ import random
 from prometheus_client import start_http_server, Histogram, Gauge
 
 class IoTDevice:
-    def __init__(self, device_id, delta_t, data_size, category, messages_sent_counter, latency_histogram):
+    def __init__(self, device_id, delta_t, data_size, messages_sent_counter, latency_histogram):
         self.device_id = device_id
         self.delta_t = delta_t
         self.data_size = data_size
-        self.category = category
         self.messages_sent_counter = messages_sent_counter
         self.latency_histogram = latency_histogram
 
@@ -18,7 +17,7 @@ class IoTDevice:
         self.channel = self.connection.channel()
         self.channel.exchange_declare(exchange='iot_exchange', exchange_type='direct')
         self.channel.queue_declare(queue='iot_queue')
-        self.channel.queue_bind(exchange='iot_exchange', queue='iot_queue', routing_key=self.category)
+        self.channel.queue_bind(exchange='iot_exchange', queue='iot_queue', routing_key='data')
 
     def send_data(self):
         start_time = time.time()
@@ -32,7 +31,7 @@ class IoTDevice:
         }
         json_data = json.dumps(data)
         self.channel.basic_publish(exchange='iot_exchange',
-                                   routing_key=self.category,
+                                   routing_key='data',
                                    body=json_data)
         end_time = time.time()
         latency = end_time - start_time
@@ -40,7 +39,6 @@ class IoTDevice:
         self.latency_histogram.labels(device_id=str(self.device_id)).observe(latency)  # Observar la latencia del mensaje
 
         print(f"Device {self.device_id} - Data sent: {json_data}")
-        print(f"Category: {self.category}")
         print(f"Latency: {latency} seconds")
 
     def generate_random_data(self):
@@ -52,7 +50,7 @@ class IoTDevice:
             self.connection.close()
 
 # Configuración de los dispositivos IoT
-num_devices = 5
+num_devices = 1
 delta_t = 2
 data_size = 10
 
@@ -65,10 +63,8 @@ start_http_server(8000)  # Puerto 8000 para métricas Prometheus
 
 # Creación y ejecución de los productores
 devices = []
-categories = ['temperatura', 'humedad', 'movimiento', 'seguridad', 'actuadores']  # Lista de categorías
 for i in range(num_devices):
-    category = categories[i % len(categories)]  # Obtener la categoría correspondiente del ciclo
-    device = IoTDevice(i, delta_t, random.randint(1, data_size), category, messages_sent_counter, latency_histogram)
+    device = IoTDevice(i, delta_t, random.randint(1, data_size), messages_sent_counter, latency_histogram)
     device.connect()
     devices.append(device)
 

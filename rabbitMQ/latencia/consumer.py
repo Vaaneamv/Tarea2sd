@@ -1,6 +1,5 @@
 import pika
 import time
-import json
 from prometheus_client import start_http_server, Counter, Histogram, Gauge
 
 class Consumer:
@@ -19,13 +18,11 @@ class Consumer:
         self.channel = self.connection.channel()
         self.channel.exchange_declare(exchange='iot_exchange', exchange_type='direct')
         self.channel.queue_declare(queue='iot_queue')
-        self.channel.queue_bind(exchange='iot_exchange', queue='iot_queue', routing_key=self.category)
+        self.channel.queue_bind(exchange='iot_exchange', queue='iot_queue', routing_key='data')
 
     def process_data(self, ch, method, properties, body):
         try:
-            data = json.loads(body.decode())
-            print(f"Consumer {self.consumer_id} - Data received: {data}")
-            print(f"Category: {self.category}")
+            print(f"Consumidor {self.consumer_id} - Datos recibidos: {body.decode()}")
             self.messages_received_counter.inc()  # Incrementar el contador de mensajes recibidos
             end_time = time.time()
             latency = end_time - self.start_time
@@ -35,7 +32,7 @@ class Consumer:
             self.latency_histogram.labels(consumer_id=str(self.consumer_id)).observe(latency)  # Observar la latencia del mensaje
             ch.basic_ack(delivery_tag=method.delivery_tag)
         except Exception as e:
-            print(f"Consumer {self.consumer_id} - Error al procesar los datos: {e}")
+            print(f"Consumidor {self.consumer_id} - Error al procesar los datos: {e}")
             self.messages_failed_counter.inc()
 
     def start_consuming(self):
@@ -49,7 +46,7 @@ class Consumer:
             self.connection.close()
 
 # Configuración de los consumidores
-num_consumers = 5
+num_consumers = 1
 
 # Creación de métricas
 messages_received_counter = Counter('iot_messages_received_total', 'Número total de mensajes recibidos')
@@ -62,11 +59,8 @@ start_http_server(8001)  # Puerto 8000 para métricas Prometheus
 
 # Creación y ejecución de los consumidores
 consumers = []
-categories = ['temperatura', 'humedad', 'movimiento', 'seguridad', 'actuadores']  # Lista de categorías
 for i in range(num_consumers):
-    category = categories[i % len(categories)]  # Obtener la categoría correspondiente del ciclo
     consumer = Consumer(i, messages_received_counter, latency_histogram, average_latency_gauge, messages_failed_counter)
-    consumer.category = category
     consumer.connect()
     consumers.append(consumer)
 

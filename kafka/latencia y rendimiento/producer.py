@@ -13,7 +13,7 @@ def main():
     topic = 'mi_tema'
     delta_t = 0.5  # valor ajustado para reducir el tiempo de espera
     data_size = 10
-    num_messages = 300  # cantidad de mensajes a enviar
+    num_messages = 1000  # cantidad de mensajes a enviar
 
     producer = KafkaProducer(bootstrap_servers=[servidores_bootstrap],
                              value_serializer=lambda x: dumps(x).encode('utf-8'),

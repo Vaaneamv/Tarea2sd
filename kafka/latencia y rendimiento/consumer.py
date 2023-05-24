@@ -6,7 +6,7 @@ import statistics
 servidores_bootstrap = 'kafka:9092'
 topic = 'mi_tema'
 group_id = 'mi_grupo'
-num_messages = 300 # cantidad de mensajes a consumir
+num_messages = 1000  # cantidad de mensajes a consumir
 
 consumer = KafkaConsumer(
     topic,
