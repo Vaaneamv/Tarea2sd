@@ -1,0 +1,60 @@
+version: '3'
+
+services:
+  zookeeper:
+    image: "bitnami/zookeeper:latest"
+    restart: always
+    environment:
+      - ALLOW_ANONYMOUS_LOGIN=yes
+    ports:
+      - "2181:2181"
+      - "2888:2888"
+      - "3888:3888"
+  kafka:
+    image: "bitnami/kafka:latest"
+    restart: always
+    ports:
+      - "9092:9092"
+    environment:
+      - KAFKA_CFG_ZOOKEEPER_CONNECT=zookeeper:2181
+      - ALLOW_PLAINTEXT_LISTENER=yes
+      - KAFKA_NUM_PARTITIONS=3  # Número deseado de particiones
+    depends_on:
+      - zookeeper
+  
+  producer:
+    build: ./producer
+    container_name: producer
+    depends_on:
+      - kafka
+      - zookeeper
+    volumes:
+      - ./producer:/usr/src/app
+
+  producer2:
+    build: ./producer
+    container_name: producer2
+    depends_on:
+      - kafka
+      - zookeeper
+    volumes:
+      - ./producer:/usr/src/app
+  
+  producer3:
+    build: ./producer
+    container_name: producer3
+    depends_on:
+      - kafka
+      - zookeeper
+    volumes:
+      - ./producer:/usr/src/app
+     
+  consumer:
+    build: ./consumer
+    container_name: consumer
+    depends_on:
+      - kafka
+      - zookeeper
+      - producer
+    volumes:
+      - ./consumer:/usr/src/app
