@@ -12,3 +12,7 @@ Borrar cache en contenedores
    
 Borrar cache en volumenes
    ``docker volume rm $(docker volume ls -q)``
+
+
+Video e informe 
+https://drive.google.com/drive/folders/1HNaGxvhOY4AXhwjPKV8XOo1U3k3wZ_YY?usp=sharing
